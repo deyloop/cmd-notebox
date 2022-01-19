@@ -1,0 +1,9 @@
+#!/usr/bin/bash
+
+: "${SCRIPTS_DIR:=$HOME/.local/scripts}"
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+mkdir -p "$SCRIPTS_DIR"
+
+ln -sf "$SCRIPT_DIR/nb" "$SCRIPTS_DIR/nb"
