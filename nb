@@ -47,6 +47,7 @@ config.repos.with_name() {
   jq ".repos[] | select(.name | contains(\"$reponame\"))" "$CONFIG_PATH"
 }
 
+
 # ------------------------------------------------------------------------
 
 x.get() {
@@ -123,13 +124,20 @@ x.commit(){
 
   id="$(x.get "$@")"
   
+  cd "$(x.dir)"
+  local remote
+
+  remote=$(git remote)
+
   read -rp "Commit? " ans
   if [[ $ans =~ [Yy].* ]]; then
-    cd "$(x.dir)" && \
     git add "$id" && \
     git commit -m "$(x.title "$id")" >/dev/null && \
-    git push >/dev/null
-    echo "notebox commited and pushed"
+    echo -n "notebox commited" && \
+    [[ -n $remote ]] && git push >/dev/null && \
+    echo -n " and pushed"
+
+    echo
   fi
 }
 
