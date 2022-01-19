@@ -2,6 +2,7 @@
 set -e
 shopt -s extglob
 
+: "${XDG_CONFIG_HOME:="$HOME/.config"}"
 : "${GITHUB_USER:="$USER"}"
 : "${REPOS_DIR:="$HOME/repos"}"
 : "${NOTEBOX_ROOT_DIR:="$REPOS_DIR/github.com/$GITHUB_USER/notebox"}"
@@ -29,6 +30,10 @@ x.get() {
   fi
 }
 
+x.dir(){
+  echo "$NOTEBOX_ROOT_DIR"
+}
+
 x.commit(){
   local id ans
 
@@ -36,7 +41,7 @@ x.commit(){
   
   read -rp "Commit? " ans
   if [[ $ans =~ [Yy].* ]]; then
-    cd "$NOTEBOX_ROOT_DIR" && \
+    cd "$(x.dir)" && \
     git add "$id" && \
     git commit -m "$(x.title "$id")" >/dev/null && \
     git push >/dev/null
@@ -49,7 +54,7 @@ x.new() {
   title="$*"
 
   id="$(__isosec)" 
-  note_dir="$NOTEBOX_ROOT_DIR/$id"
+  note_dir="$(x.dir)"
   mkdir -p "$note_dir"
 
   if [[ -z $title ]]; then return; fi
@@ -61,7 +66,7 @@ x.new() {
 }
 
 x.search() {
-  cd "$NOTEBOX_ROOT_DIR"
+  cd "$(x.dir)"
 
   local searchterms results
 
@@ -96,14 +101,14 @@ x.title() {
 }
 
 x.list() {
-  cd "$NOTEBOX_ROOT_DIR"
+  cd "$(x.dir)"
   for dir in $(x.list.ids); do
     printf "%s %s\n" "$dir" "$(x.title "$dir")"
   done
 }
 
 x.list.ids() {
-  cd "$NOTEBOX_ROOT_DIR"
+  cd "$(x.dir)"
   local list
   list=$(ls -1 -d ./*/)
   list="${list//\.\//}"
@@ -119,7 +124,7 @@ x.open() {
   local id
   id="$(x.get "$@")"
   
-  command $EDITOR "$NOTEBOX_ROOT_DIR/$id/README.md"
+  command $EDITOR "$(x.dir)/$id/README.md"
 }
 
 x.edit() {
@@ -132,7 +137,7 @@ x.edit() {
 }
 
 x.pull() {
-  cd "$NOTEBOX_ROOT_DIR" && \
+  cd "$(x.dir)" && \
   git pull >/dev/null
 
   echo "notebox synced"
