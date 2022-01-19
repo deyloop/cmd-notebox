@@ -138,7 +138,7 @@ x.new() {
   title="$*"
 
   id="$(__isosec)" 
-  note_dir="$(x.dir)"
+  note_dir="$(x.dir)/$id"
   mkdir -p "$note_dir"
 
   if [[ -z $title ]]; then return; fi
