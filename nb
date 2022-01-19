@@ -3,11 +3,51 @@ set -e
 shopt -s extglob
 
 : "${XDG_CONFIG_HOME:="$HOME/.config"}"
+: "${CONFIG_PATH:="$XDG_CONFIG_HOME/nb/config.json"}"
 : "${GITHUB_USER:="$USER"}"
 : "${REPOS_DIR:="$HOME/repos"}"
 : "${NOTEBOX_ROOT_DIR:="$REPOS_DIR/github.com/$GITHUB_USER/notebox"}"
 : "${EDITOR:=vim}"
 : "${EXE:="${0##*/}"}"
+
+# ---------------------------------Config---------------------------------
+
+config.current_repo(){
+  jq -r '.current_repo' "$CONFIG_PATH"
+}
+
+config.current_repo.set_to(){
+  local to tempConf
+  to="$1"
+  
+  tempConf="$(mktemp)"
+  jq ".current_repo = \"$to\"" "$CONFIG_PATH" >"$tempConf"
+  mv "$tempConf" "$CONFIG_PATH"
+}
+
+config.repos(){
+  jq '.repos[]' "$CONFIG_PATH"
+}
+
+config.repos.add() {
+  local obj
+  obj="$1"
+
+  local tempConf
+  tempConf="$(mktemp)"
+
+  jq ".repos += [$obj]" "$CONFIG_PATH" >"$tempConf"
+  mv "$tempConf" "$CONFIG_PATH"
+}
+
+config.repos.with_name() {
+  local reponame
+  reponame="$1"
+
+  jq ".repos[] | select(.name | contains(\"$reponame\"))" "$CONFIG_PATH"
+}
+
+# ------------------------------------------------------------------------
 
 x.get() {
   local arg="$*"
@@ -30,8 +70,52 @@ x.get() {
   fi
 }
 
+_init() {
+  # check if we have a config in the right place, otherwise create it
+  if [[ ! -s $CONFIG_PATH ]]; then 
+    mkdir -p "${CONFIG_PATH%/*}"
+    echo '{"repos":[],"current_repo": ""}' >"$CONFIG_PATH"
+  fi
+}
+
+x.repo.add() {
+  local reponame reporoot repogit
+  reponame="$1"
+  [[ -z $reponame ]] && echo "Please Provide notebox name" && exit 1
+  read -rp "Enter Repo Root Directory: " reporoot
+  read -rp "Enter Repo Git Remote: " repogit
+
+  local obj
+  obj="{\"name\":\"$reponame\",\"root\":\"$reporoot\",\"git\":\"$repogit\"} "
+
+  config.repos.add "$obj"
+
+  echo
+  echo "Added:"
+  config.repos.with_name "$reponame"
+}
+
+x.repo.switch() {
+  local reponame
+  reponame="$1"
+  [[ -z $reponame ]] && echo "Please Provide notebox name" && exit 1
+
+  config.current_repo.set_to "$reponame"
+
+  echo "Switched to $reponame notebox at $(x.dir)"
+}
+
+x.repo() {
+  config.current_repo
+}
+
 x.dir(){
-  echo "$NOTEBOX_ROOT_DIR"
+  local current_repo repo_dir
+  current_repo=$(config.current_repo)
+  [[ -z $current_repo ]] && echo "ERROR: No current notebox defined" && exit 1
+
+  repo_dir=$(jq -r ".repos[] | select(.name | contains(\"$current_repo\")) | .root" "$CONFIG_PATH") 
+  echo "$repo_dir"
 }
 
 x.commit(){
@@ -218,6 +302,8 @@ if [[ -n $COMP_LINE  ]]; then
   done
   exit
 fi
+
+_init
 
 # Delegation
 if [[ -n "$1" ]]; then
