@@ -115,7 +115,7 @@ x.dir(){
   current_repo=$(config.current_repo)
   [[ -z $current_repo ]] && echo "ERROR: No current notebox defined" && exit 1
 
-  repo_dir=$(jq -r ".repos[] | select(.name | contains(\"$current_repo\")) | .root" "$CONFIG_PATH") 
+  repo_dir=$(config.repos.with_name "$current_repo" | jq -r '.root') 
   echo "$repo_dir"
 }
 
