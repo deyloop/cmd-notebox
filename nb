@@ -163,25 +163,15 @@ x.search() {
   local searchterms results
 
   searchterms="$*"
-  results="$( git grep --color -nir "${searchterms//\ /\.\*}" )"
-
-  local -A resultFiles
+  results="$( git grep -irl "${searchterms//\ /\.\*}" )"
+  
   while IFS= read -r line
   do
-    if [[ $line =~ ([^:]*):(.*) ]]; then
-      local file_name="${BASH_REMATCH[1]}"
-      local result_line="${BASH_REMATCH[2]}"
-
-      resultFiles[${file_name%/*}]+="$result_line"
-      resultFiles[${file_name%/*}]+=$'\n'
-    fi
-  done <<< "$results"
-  
-  for i in "${!resultFiles[@]}"
-  do
+    local i
+    i="${line%%/*}"
     echo "$i $(x.title "$i")"
-    # echo "${resultFiles[$i]}"
-  done
+  done <<< "$results"
+
 }
 
 x.title() {
