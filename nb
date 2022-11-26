@@ -142,16 +142,13 @@ x.commit(){
 }
 
 x.new() {
-  local title note_dir id
-  title="$*"
+  local note_dir id
 
   id="$(__isosec)" 
   note_dir="$(x.dir)/$id"
   mkdir -p "$note_dir"
 
-  if [[ -z $title ]]; then return; fi
-
-  echo "# $title" >> "$note_dir/README.md"
+  > "$note_dir/README.md"
   command $EDITOR "$note_dir/README.md"
 
   x.commit "$id"
