@@ -189,8 +189,7 @@ x.list() {
 x.list.ids() {
   cd "$(x.dir)"
   local list
-  list=$(ls -1 -d ./*/)
-  list="${list//\.\//}"
+  list=$(ls -p1 . | grep -E [[:digit:]]+/)
   list="${list//\//}"
   echo "$list"
 }
