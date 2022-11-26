@@ -161,8 +161,8 @@ x.search() {
   local searchterms results
 
   searchterms="$*"
-  results="$( git grep -irl "${searchterms//\ /\.\*}" )"
-  
+  results="$( git grep -irl "${searchterms//\ /\.\*}" | grep -E [[:digit:]]+/ )"
+
   while IFS= read -r line
   do
     local i
