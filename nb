@@ -131,7 +131,8 @@ x.commit(){
 
   read -rp "Commit? " ans
   if [[ $ans =~ [Yy].* ]]; then
-    git add "$id" && \
+    x.update
+    git add . && \
     git commit -m "$(x.title "$id")" >/dev/null && \
     echo -n "notebox commited" && \
     [[ -n $remote ]] && git push >/dev/null && \
@@ -184,6 +185,52 @@ x.list() {
   for dir in $(x.list.ids); do
     printf "%s %s\n" "$dir" "$(x.title "$dir")"
   done
+}
+
+x.mdindex() {
+  cd "$(x.dir)"
+  for dir in $(x.list.ids | sort --reverse); do
+    printf "* [%s](../%s/README.md)\n" "$(x.title "$dir")" "$dir"
+  done
+}
+
+_UTCstat() {
+  local dir
+  dir="$1"
+  date --utc --date="$(stat --format="%y" $dir)" +"%Y-%m-%d %H:%M:%SZ"
+}
+
+_mdlatest() {
+  cd "$(x.dir)"
+  for dir in $(x.list.ids | sort --reverse); do
+    printf "* %s [%s](../%s/README.md)\n" "$(_UTCstat $dir)" "$(x.title "$dir")" "$dir"
+  done
+}
+
+x.mdlatest() {
+ _mdlatest | sort --reverse
+}
+
+x.updateindex.all(){
+  cd "$(x.dir)"
+  x.mdindex > dex/all.md
+}
+
+x.updateindex.latest() {
+  cd "$(x.dir)"
+  x.mdlatest > dex/latest.md
+}
+
+x.updatekeg(){
+  cd "$(x.dir)"
+  yq -y ".updated = \"$(date --utc +'%Y-%m-%d %H:%M:%SZ')\"" keg > keg.tmp
+  mv keg.tmp keg
+}
+
+x.update(){
+  x.updateindex.all
+  x.updateindex.latest
+  x.updatekeg
 }
 
 x.list.ids() {
