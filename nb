@@ -278,7 +278,7 @@ x.mdlink() {
   id="${line%% *}"
   tittle="${line#* }"
 
-  echo "* [$id](../$id/README.md) $tittle"
+  echo "* [$tittle](../$id/README.md)"
 }
 
 x.mdreflink() {
@@ -289,7 +289,7 @@ x.mdreflink() {
   id="${line%% *}"
   tittle="${line#* }"
 
-  echo "[1]: ../$id/README.md \"$tittle\""
+  echo "[^1]: ../$id/README.md \"$tittle\""
 }
 
 x.ghlink() {
