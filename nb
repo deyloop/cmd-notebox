@@ -223,7 +223,7 @@ x.updateindex.latest() {
 
 x.updatekeg(){
   cd "$(x.dir)"
-  yq -y ".updated = \"$(date --utc +'%Y-%m-%d %H:%M:%SZ')\"" keg > keg.tmp
+  yq ".updated = \"$(date --utc +'%Y-%m-%d %H:%M:%SZ')\"" keg > keg.tmp
   mv keg.tmp keg
 }
 
